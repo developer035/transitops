@@ -1,16 +1,8 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from configurations import check_connection, init_indexes
+from auth import auth
 
 app = FastAPI(title="TransitOps API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],       # tighten before demo if time allows
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.on_event("startup")
 def startup_db():
@@ -21,11 +13,10 @@ def startup_db():
 def health():
     return {"status": "ok"}
 
-# As teammates finish routers, wire them here:
-# from routers import auth, vehicles, drivers, trips, maintenance, fuel, expenses, dashboard
-# app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+
+# others plug in here as teammates finish:
 # app.include_router(vehicles.router, prefix="/vehicles", tags=["vehicles"])
-# app.include_router(drivers.router, prefix="/drivers", tags=["drivers"])
 # app.include_router(trips.router, prefix="/trips", tags=["trips"])
 # app.include_router(maintenance.router, prefix="/maintenance", tags=["maintenance"])
 # app.include_router(fuel.router, prefix="/fuel", tags=["fuel"])
