@@ -1,0 +1,26 @@
+# --- Python Environment & Dependencies ---
+venv/
+.venv/
+env/
+ENV/
+pyvenv.cfg
+
+# --- Python Caching ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# --- Environment Variables & Secrets ---
+.env
+.env.*
+!.env.example
+secrets.json
+
+# --- IDEs & System Files ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
