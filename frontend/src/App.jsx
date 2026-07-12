@@ -10,6 +10,8 @@ import Trips from './pages/Trips';
 import Maintenance from './pages/Maintenance';
 import Expenses from './pages/Expenses';
 import Reports from './pages/Reports';
+import BulkPopulate from './pages/BulkPopulate';
+import UserManager from './pages/UserManager';
 import { useAuth } from './context/AuthContext';
 
 function AppLayout({ children }) {
@@ -113,6 +115,10 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Dev tools — no auth required */}
+      <Route path="/bulk-populate" element={<BulkPopulate />} />
+      <Route path="/user-manager" element={<UserManager />} />
 
       {/* Default redirect */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

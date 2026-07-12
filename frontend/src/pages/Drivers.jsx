@@ -17,6 +17,8 @@ const EMPTY_FORM = {
   contact_number: '',
   safety_score: 100,
   status: 'Available',
+  email: '',
+  password: '',
 };
 
 export default function Drivers() {
@@ -76,6 +78,8 @@ export default function Drivers() {
       contact_number: d.contact_number,
       safety_score: d.safety_score,
       status: d.status,
+      email: '',
+      password: '',
     });
     setShowModal(true);
   };
@@ -87,11 +91,14 @@ export default function Drivers() {
     try {
       const data = { ...form, safety_score: parseFloat(form.safety_score) };
       if (editDriver) {
+        // Remove email/password if editing
+        delete data.email;
+        delete data.password;
         await updateDriver(editDriver._id, data);
         setSuccess('Driver updated.');
       } else {
         await createDriver(data);
-        setSuccess('Driver created.');
+        setSuccess('Driver created and Firebase account registered successfully.');
       }
       setShowModal(false);
       fetchDrivers();
@@ -238,6 +245,20 @@ export default function Drivers() {
                     <option>Suspended</option>
                   </select>
                 </div>
+                
+                {/* Firebase account fields only during creation */}
+                {!editDriver && (
+                  <>
+                    <div className="form-group">
+                      <label className="form-label">Account Email *</label>
+                      <input className="form-input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required placeholder="driver@transitops.com" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Account Password *</label>
+                      <input className="form-input" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required placeholder="At least 6 chars" minLength={6} />
+                    </div>
+                  </>
+                )}
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
