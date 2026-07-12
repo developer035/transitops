@@ -16,6 +16,7 @@ class VehicleModel(BaseModel):
     max_load_capacity: float = Field(...)
     odometer: float = Field(default=0.0)
     acquisition_cost: float = Field(...)
+    region: Optional[str] = Field(default=None)
     status: VehicleStatus = Field(default=VehicleStatus.AVAILABLE)
 
     class Config:
@@ -27,4 +28,5 @@ class VehicleUpdateModel(BaseModel):
     max_load_capacity: Optional[float] = None
     odometer: Optional[float] = None
     acquisition_cost: Optional[float] = None
+    region: Optional[str] = None
     status: Optional[VehicleStatus] = None

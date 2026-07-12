@@ -4,13 +4,15 @@ from configurations import vehicles_collection, trips_collection, drivers_collec
 router = APIRouter()
 
 @router.get("/kpis")
-def get_dashboard_kpis(vehicle_type: str = None, vehicle_status: str = None):
+def get_dashboard_kpis(vehicle_type: str = None, vehicle_status: str = None, region: str = None):
     # Basic filters applied to vehicles collection if needed
     vehicle_query = {}
     if vehicle_type:
-        vehicle_query["type"] = vehicle_type
+        vehicle_query["vehicle_type"] = vehicle_type
     if vehicle_status:
         vehicle_query["status"] = vehicle_status
+    if region:
+        vehicle_query["region"] = region
         
     # Vehicle metrics
     total_vehicles = vehicles_collection.count_documents(vehicle_query)
