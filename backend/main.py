@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from configurations import check_connection, init_indexes
+from auth import auth
+from deps import get_current_user
+from routers import drivers, dashboard, vehicles, trips, maintenance, expenses, reports, admin
 
 app = FastAPI(title="TransitOps API")
 
@@ -21,13 +24,14 @@ def startup_db():
 def health():
     return {"status": "ok"}
 
-# As teammates finish routers, wire them here:
-# from routers import auth, vehicles, drivers, trips, maintenance, fuel, expenses, dashboard
-# app.include_router(auth.router, prefix="/auth", tags=["auth"])
-# app.include_router(vehicles.router, prefix="/vehicles", tags=["vehicles"])
-# app.include_router(drivers.router, prefix="/drivers", tags=["drivers"])
-# app.include_router(trips.router, prefix="/trips", tags=["trips"])
-# app.include_router(maintenance.router, prefix="/maintenance", tags=["maintenance"])
-# app.include_router(fuel.router, prefix="/fuel", tags=["fuel"])
-# app.include_router(expenses.router, prefix="/expenses", tags=["expenses"])
-# app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(drivers.router, prefix="/drivers", tags=["drivers"], dependencies=[Depends(get_current_user)])
+app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"], dependencies=[Depends(get_current_user)])
+app.include_router(vehicles.router, prefix="/vehicles", tags=["vehicles"], dependencies=[Depends(get_current_user)])
+app.include_router(trips.router, prefix="/trips", tags=["trips"], dependencies=[Depends(get_current_user)])
+app.include_router(maintenance.router, prefix="/maintenance", tags=["maintenance"], dependencies=[Depends(get_current_user)])
+app.include_router(expenses.router, prefix="/expenses", tags=["expenses"], dependencies=[Depends(get_current_user)])
+app.include_router(reports.router, prefix="/reports", tags=["reports"], dependencies=[Depends(get_current_user)])
+
+# DEV-ONLY admin router — no auth required
+app.include_router(admin.router, prefix="/admin", tags=["admin"])
