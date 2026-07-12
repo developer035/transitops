@@ -24,3 +24,5 @@ secrets.json
 .idea/
 .DS_Store
 Thumbs.db
+
+firebase-credentials.json

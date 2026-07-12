@@ -2,6 +2,8 @@ import os
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials
 
 load_dotenv()
 
@@ -20,6 +22,8 @@ maintenance_collection = db["maintenance_logs"]
 fuel_logs_collection = db["fuel_logs"]
 expenses_collection = db["expenses"]
 
+cred = credentials.Certificate("firebase-credentials.json")
+firebase_admin.initialize_app(cred)
 
 def init_indexes():
     """Call once on startup. Enforces the spec's uniqueness rules."""
