@@ -21,13 +21,13 @@ def startup_db():
 def health():
     return {"status": "ok"}
 
-# As teammates finish routers, wire them here:
-# from routers import auth, vehicles, drivers, trips, maintenance, fuel, expenses, dashboard
+from routers import drivers, dashboard
+# from routers import auth, vehicles, trips, maintenance, fuel, expenses
 # app.include_router(auth.router, prefix="/auth", tags=["auth"])
 # app.include_router(vehicles.router, prefix="/vehicles", tags=["vehicles"])
-# app.include_router(drivers.router, prefix="/drivers", tags=["drivers"])
+app.include_router(drivers.router, prefix="/drivers", tags=["drivers"])
 # app.include_router(trips.router, prefix="/trips", tags=["trips"])
 # app.include_router(maintenance.router, prefix="/maintenance", tags=["maintenance"])
 # app.include_router(fuel.router, prefix="/fuel", tags=["fuel"])
 # app.include_router(expenses.router, prefix="/expenses", tags=["expenses"])
-# app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
