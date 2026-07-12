@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -58,6 +59,19 @@ export default function Sidebar() {
   const { role, userInfo, logout } = useAuth();
   const navigate = useNavigate();
 
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(role));
 
   const handleLogout = async () => {
@@ -98,6 +112,10 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
+        <button className="theme-toggle-btn" onClick={toggleTheme}>
+          <span>{theme === 'light' ? '🌙' : '☀️'}</span>
+          <span>{theme === 'light' ? 'Dark Theme' : 'Light Theme'}</span>
+        </button>
         <button className="logout-btn" onClick={handleLogout}>
           <span>🚪</span>
           <span>Logout</span>

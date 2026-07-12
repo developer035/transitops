@@ -32,12 +32,8 @@ export default function Reports() {
 
           const totalOps = costs.total_operational_cost || 0;
           const acqCost = v.acquisition_cost || 1;
-          // ROI = (Revenue - Total Ops Cost) / Acquisition Cost
-          // Revenue tracking not implemented, so Revenue = 0 for now
           const roi = (0 - totalOps) / acqCost;
 
-          // Fuel efficiency = Odometer / Total Liters
-          // We don't have total liters from the cost endpoint, so show N/A
           return {
             ...v,
             total_fuel_cost: costs.total_fuel_cost,
@@ -76,16 +72,39 @@ export default function Reports() {
     }
   };
 
+  const handlePrintPdf = () => {
+    window.print();
+  };
+
+  // SVG Chart Config
+  const utilization = kpis?.fleet_utilization_percent || 0;
+  const radius = 50;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (utilization / 100) * circumference;
+
+  // Find max cost to scale the bar chart
+  const maxCost = analytics.length > 0 ? Math.max(...analytics.map(v => v.total_operational_cost), 1000) : 1000;
+
   return (
-    <div className="page">
-      <div className="page-header">
+    <div className="page print-section">
+      <div className="page-header no-print">
         <h1 className="page-title">Reports & Analytics</h1>
-        <button className="btn btn-primary" onClick={handleExportCsv} disabled={exporting}>
-          {exporting ? 'Exporting...' : '⬇ Export CSV'}
-        </button>
+        <div className="button-group">
+          <button className="btn btn-secondary" onClick={handlePrintPdf}>
+            📄 Print PDF Report
+          </button>
+          <button className="btn btn-primary" onClick={handleExportCsv} disabled={exporting}>
+            {exporting ? 'Exporting...' : '⬇ Export CSV'}
+          </button>
+        </div>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      <div className="print-header-only">
+        <h1>TransitOps Fleet Analytics & Reports</h1>
+        <p>Generated on: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</p>
+      </div>
+
+      {error && <div className="alert alert-error no-print">{error}</div>}
 
       {/* Summary KPI Strip */}
       {kpis && (
@@ -113,6 +132,61 @@ export default function Reports() {
         <div className="loading-center"><div className="spinner" /></div>
       ) : (
         <>
+          {/* Charts Row */}
+          <div className="charts-row">
+            {/* Utilization Gauge */}
+            <div className="chart-card">
+              <h3 className="chart-title">Fleet Utilization</h3>
+              <div className="utilization-gauge-container">
+                <svg className="gauge-svg" width="160" height="160" viewBox="0 0 120 120">
+                  <circle className="gauge-bg" cx="60" cy="60" r={radius} strokeWidth="10" fill="transparent" />
+                  <circle 
+                    className="gauge-progress" 
+                    cx="60" 
+                    cy="60" 
+                    r={radius} 
+                    strokeWidth="10" 
+                    fill="transparent" 
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                  />
+                  <text className="gauge-text" x="50%" y="50%" dominantBaseline="middle" textAnchor="middle">
+                    {Math.round(utilization)}%
+                  </text>
+                </svg>
+                <div className="gauge-legend">
+                  <span className="legend-label">Utilization Rate</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Operational Cost Bar Chart */}
+            <div className="chart-card flex-1">
+              <h3 className="chart-title">Operational Cost Breakdown (₹)</h3>
+              <div className="bar-chart-container">
+                {analytics.slice(0, 6).map((v) => {
+                  const fuelPercent = (v.total_fuel_cost / maxCost) * 100;
+                  const otherPercent = (v.total_other_expenses / maxCost) * 100;
+                  return (
+                    <div className="bar-row" key={v._id}>
+                      <div className="bar-label">{v.registration_number}</div>
+                      <div className="bar-wrapper">
+                        <div className="bar-fill-fuel" style={{ width: `${fuelPercent}%` }} title={`Fuel: ₹${v.total_fuel_cost}`} />
+                        <div className="bar-fill-other" style={{ width: `${otherPercent}%` }} title={`Other: ₹${v.total_other_expenses}`} />
+                        <span className="bar-value">₹{v.total_operational_cost.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="chart-legend">
+                  <div className="legend-item"><span className="legend-dot fuel-dot" /> Fuel</div>
+                  <div className="legend-item"><span className="legend-dot other-dot" /> Expenses</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <h2 className="section-title">Vehicle Analytics</h2>
           <div className="table-wrapper">
             <table className="data-table">
@@ -146,7 +220,7 @@ export default function Reports() {
                     <td>{v.total_other_expenses?.toLocaleString()}</td>
                     <td><strong>{v.total_operational_cost?.toLocaleString()}</strong></td>
                     <td>
-                      <span className={v.roi >= 0 ? 'text-success' : 'text-danger'}>
+                      <span className={parseFloat(v.roi) >= 0 ? 'text-success' : 'text-danger'}>
                         {v.roi}
                       </span>
                     </td>
