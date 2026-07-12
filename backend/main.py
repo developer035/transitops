@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from configurations import check_connection, init_indexes
 from auth import auth
 from deps import get_current_user
-from routers import drivers, dashboard, vehicles, trips, maintenance, expenses, reports
+from routers import drivers, dashboard, vehicles, trips, maintenance, expenses, reports, admin
 
 app = FastAPI(title="TransitOps API")
 
@@ -32,3 +32,6 @@ app.include_router(trips.router, prefix="/trips", tags=["trips"], dependencies=[
 app.include_router(maintenance.router, prefix="/maintenance", tags=["maintenance"], dependencies=[Depends(get_current_user)])
 app.include_router(expenses.router, prefix="/expenses", tags=["expenses"], dependencies=[Depends(get_current_user)])
 app.include_router(reports.router, prefix="/reports", tags=["reports"], dependencies=[Depends(get_current_user)])
+
+# DEV-ONLY admin router — no auth required
+app.include_router(admin.router, prefix="/admin", tags=["admin"])

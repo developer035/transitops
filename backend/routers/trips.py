@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from models.trip import TripModel
 from configurations import trips_collection, vehicles_collection, drivers_collection
 from bson import ObjectId
+from deps import get_current_user
 
 router = APIRouter()
 
@@ -33,9 +34,11 @@ def create_trip(trip: TripModel):
     return created
 
 @router.get("/", response_model=list[TripModel])
-def list_trips(status: str = None):
+def list_trips(status: str = None, user: dict = Depends(get_current_user)):
     query = {}
     if status: query["status"] = status
+    if user.get("role") == "driver":
+        query["driver_id"] = user.get("driver_id")
     docs = list(trips_collection.find(query))
     for d in docs: d["_id"] = str(d["_id"])
     return docs

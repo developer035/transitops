@@ -19,14 +19,26 @@ def get_current_user(authorization: str = Header(...)):
     uid = decoded["uid"]
     user = users_collection.find_one({"firebase_uid": uid})
     if not user:
-        user = {
-            "firebase_uid": uid,
-            "email": decoded.get("email"),
-            "name": decoded.get("name", decoded.get("email")),
-            "role": "driver",
-        }
-        result = users_collection.insert_one(user)
-        user["_id"] = result.inserted_id
+        email = decoded.get("email")
+        if email:
+            # Check if a pre-populated user exists with this email
+            user = users_collection.find_one({"email": email})
+            if user:
+                users_collection.update_one(
+                    {"_id": user["_id"]},
+                    {"$set": {"firebase_uid": uid}}
+                )
+                user["firebase_uid"] = uid
+        
+        if not user:
+            user = {
+                "firebase_uid": uid,
+                "email": email,
+                "name": decoded.get("name", email),
+                "role": "driver",
+            }
+            result = users_collection.insert_one(user)
+            user["_id"] = result.inserted_id
 
     return user
 

@@ -18,6 +18,9 @@ class DriverModel(BaseModel):
     safety_score: float = Field(default=100.0)
     status: DriverStatus = Field(default=DriverStatus.AVAILABLE)
 
+    email: Optional[str] = Field(default=None)
+    password: Optional[str] = Field(default=None)
+
     class Config:
         populate_by_name = True
 

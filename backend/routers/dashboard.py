@@ -1,10 +1,16 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from configurations import vehicles_collection, trips_collection, drivers_collection
+from deps import get_current_user
 
 router = APIRouter()
 
 @router.get("/kpis")
-def get_dashboard_kpis(vehicle_type: str = None, vehicle_status: str = None, region: str = None):
+def get_dashboard_kpis(
+    vehicle_type: str = None, 
+    vehicle_status: str = None, 
+    region: str = None,
+    user: dict = Depends(get_current_user)
+):
     # Basic filters applied to vehicles collection if needed
     vehicle_query = {}
     if vehicle_type:
@@ -24,8 +30,15 @@ def get_dashboard_kpis(vehicle_type: str = None, vehicle_status: str = None, reg
     drivers_on_duty = drivers_collection.count_documents({"status": {"$in": ["Available", "On Trip"]}})
     
     # Trip metrics
-    active_trips = trips_collection.count_documents({"status": "Dispatched"})
-    pending_trips = trips_collection.count_documents({"status": "Draft"})
+    trip_query_active = {"status": "Dispatched"}
+    trip_query_pending = {"status": "Draft"}
+    if user.get("role") == "driver":
+        driver_id = user.get("driver_id")
+        trip_query_active["driver_id"] = driver_id
+        trip_query_pending["driver_id"] = driver_id
+
+    active_trips = trips_collection.count_documents(trip_query_active)
+    pending_trips = trips_collection.count_documents(trip_query_pending)
     
     # Fleet Utilization
     fleet_utilization = 0

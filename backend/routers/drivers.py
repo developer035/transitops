@@ -1,22 +1,60 @@
 from fastapi import APIRouter, HTTPException, status
 from models.driver import DriverModel, DriverUpdateModel
-from configurations import drivers_collection
+from firebase_admin import auth as firebase_auth
+from configurations import drivers_collection, users_collection
 from bson import ObjectId
 
 router = APIRouter()
 
 @router.post("/", response_model=DriverModel, status_code=status.HTTP_201_CREATED)
 def create_driver(driver: DriverModel):
-    driver_dict = driver.model_dump(by_alias=True, exclude={"id"})
+    driver_dict = driver.model_dump(by_alias=True, exclude={"id", "email", "password"})
     
     # Check if license number already exists
     existing_driver = drivers_collection.find_one({"license_number": driver_dict["license_number"]})
     if existing_driver:
         raise HTTPException(status_code=400, detail="Driver with this license number already exists")
     
+    # Check email and password for Firebase Auth account creation
+    firebase_uid = None
+    email = driver.email
+    password = driver.password
+    
+    if email and password:
+        # Check if email is already taken in users collection
+        existing_user = users_collection.find_one({"email": email})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User with this email already exists in system")
+        
+        try:
+            # Create user in Firebase Auth
+            fb_user = firebase_auth.create_user(
+                email=email,
+                password=password,
+                display_name=driver.name
+            )
+            firebase_uid = fb_user.uid
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Firebase Auth creation failed: {str(e)}")
+
     new_driver = drivers_collection.insert_one(driver_dict)
-    created_driver = drivers_collection.find_one({"_id": new_driver.inserted_id})
-    created_driver["_id"] = str(created_driver["_id"])
+    driver_id = str(new_driver.inserted_id)
+    
+    # Create the corresponding user record if Firebase Auth user was created
+    if firebase_uid:
+        user_doc = {
+            "firebase_uid": firebase_uid,
+            "email": email,
+            "name": driver.name,
+            "role": "driver",
+            "driver_id": driver_id
+        }
+        users_collection.insert_one(user_doc)
+        
+    created_driver = drivers_collection.find_one({"_id": ObjectId(driver_id)})
+    created_driver["_id"] = driver_id
+    # Add back the email field to response model if needed, or leave None
+    created_driver["email"] = email
     return created_driver
 
 @router.get("/", response_model=list[DriverModel])
