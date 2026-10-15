@@ -279,6 +279,7 @@ npm install
 # 3. Environment Variables
 cp .env.example .env
 # Open .env and map your Firebase Client Keys:
+# VITE_API_URL="http://127.0.0.1:8000"
 # VITE_FIREBASE_API_KEY="..."
 # VITE_FIREBASE_AUTH_DOMAIN="..."
 # ...
